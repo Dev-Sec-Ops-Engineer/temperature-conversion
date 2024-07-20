@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conversao-temperatura
+  labels:
+    app: conversao-temperatura
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: conversao-temperatura
+  template:
+    metadata:
+      labels:
+        app: conversao-temperatura
+    spec:
+      containers:
+        - name: conversao-temperatura
+          image: mganalistati/conversao-temperatura-cicd
+          ports:
+            - name: conv-temp-port
+              containerPort: 8080
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: conversao-temperatura
+spec:
+  selector:
+    app: conversao-temperatura
+  ports:
+    - port: 80
+      protocol: TCP
+      name: http
+      targetPort: conv-temp-port
+  type: ClusterIP
