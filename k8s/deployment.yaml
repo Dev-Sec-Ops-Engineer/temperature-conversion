@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: conversao-temperatura
+  name: temperature-conversion
   labels:
-    app: conversao-temperatura
+    app: temperature-conversion
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: conversao-temperatura
+      app: temperature-conversion
   template:
     metadata:
       labels:
-        app: conversao-temperatura
+        app: temperature-conversion
     spec:
       containers:
-        - name: conversao-temperatura
-          image: mganalistati/conversao-temperatura-cicd
+        - name: temperature-conversion
+          image: mnganalistati/devsecops/conv-temp
           ports:
             - name: conv-temp-port
               containerPort: 8080
@@ -25,10 +25,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: conversao-temperatura
+  name: temperature-conversion
 spec:
   selector:
-    app: conversao-temperatura
+    app: temperature-conversion
   ports:
     - port: 80
       protocol: TCP
