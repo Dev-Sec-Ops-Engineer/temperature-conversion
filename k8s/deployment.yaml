@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: temperature-conversion
-          image: mnganalistati/devsecops/conv-temp
+          image: mganalistati/conv-temp-sec
           ports:
             - name: conv-temp-port
               containerPort: 8080
