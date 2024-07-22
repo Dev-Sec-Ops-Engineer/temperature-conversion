@@ -41,10 +41,12 @@ jobs:
           tags: |
             mganalistati/conv-temp-sec:v${{ github.run_number }}
             mganalistati/conv-temp-sec:latest
-  CD:
-    name: deploy
+  
+  CD-DEVELOP:
+    name: deploy-develop
     runs-on: ubuntu-latest
     needs: ["CI"]
+    environment: homologation
     steps:
       - name: "Checkout Git Repository"
         uses: actions/checkout@v4.1.7
@@ -58,7 +60,55 @@ jobs:
       - name: "Deploy to Kubernetes cluster"
         uses: Azure/k8s-deploy@v5.0.0
         with:
-          namespace: devops 
+          namespace: develop 
+          manifests: | 
+            ./k8s/deployment.yaml
+          images: |
+            mganalistati/conv-temp-sec:v${{ github.run_number }}
+  
+  CD-HOMOLOGATION:
+    name: deploy-homologation
+    runs-on: ubuntu-latest
+    needs: ["CI"]
+    environment: homologation
+    steps:
+      - name: "Checkout Git Repository"
+        uses: actions/checkout@v4.1.7
+      
+      - name: "Kubernetes Set Context"
+        uses: Azure/k8s-set-context@v3.0
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+      
+      - name: "Deploy to Kubernetes cluster"
+        uses: Azure/k8s-deploy@v5.0.0
+        with:
+          namespace: homologation
+          manifests: | 
+            ./k8s/deployment.yaml
+          images: |
+            mganalistati/conv-temp-sec:v${{ github.run_number }}
+    
+  CD-PRODUCTION:
+    name: deploy-production
+    runs-on: ubuntu-latest
+    needs: ["CI"]
+    environment: production
+    steps:
+      - name: "Checkout Git Repository"
+        uses: actions/checkout@v4.1.7
+      
+      - name: "Kubernetes Set Context"
+        uses: Azure/k8s-set-context@v3.0
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+      
+      - name: "Deploy to Kubernetes cluster"
+        uses: Azure/k8s-deploy@v5.0.0
+        with:
+          namespace: production
           manifests: | 
             ./k8s/deployment.yaml
           images: |
