@@ -39,8 +39,8 @@ jobs:
           file: ./src/Dockerfile
           push: true
           tags: |
-            nganalistati/devsecops/conv-temp:v${{ github.run_number }}
-            nganalistati/devsecops/conv-temp:latest
+            nganalistati/conv-temp-sec:v${{ github.run_number }}
+            nganalistati/conv-temp-sec:latest
   CD:
     name: deploy
     runs-on: ubuntu-latest
@@ -62,4 +62,4 @@ jobs:
           manifests: | 
             deployment.yaml
           images: |
-            nganalistati/devsecops/conv-temp:v${{ github.run_number }}
+            nganalistati/conv-temp-sec:v${{ github.run_number }}
