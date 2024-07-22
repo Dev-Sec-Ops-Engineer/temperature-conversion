@@ -60,6 +60,6 @@ jobs:
         with:
           namespace: devops 
           manifests: | 
-            deployment.yaml
+            ./k8s/deployment.yaml
           images: |
             mganalistati/conv-temp-sec:v${{ github.run_number }}
