@@ -93,7 +93,7 @@ jobs:
   CD-PRODUCTION:
     name: deploy-production
     runs-on: ubuntu-latest
-    needs: ["CI"]
+    needs: ["CD-HOMOLOGATION"]
     environment: production
     steps:
       - name: "Checkout Git Repository"
