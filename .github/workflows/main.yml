@@ -41,6 +41,21 @@ jobs:
           tags: |
             mganalistati/conv-temp-sec:v${{ github.run_number }}
             mganalistati/conv-temp-sec:latest
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: 'mganalistati/conv-temp-sec:v${{ github.run_number }}'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: LOW,MEDIUM,HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: 0
+      
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
   
   CD-DEVELOP:
     name: deploy-develop
