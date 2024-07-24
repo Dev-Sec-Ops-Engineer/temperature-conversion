@@ -1,0 +1,46 @@
+name: trivy
+
+on:
+  push:
+    branches: [ "develop", "main" ]
+  pull_request:
+    branches: [ "develop", "main" ]
+    
+permissions:
+  contents: read
+
+jobs:
+  build:
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+    name: Build
+    runs-on: "ubuntu-20.04"
+    steps:
+      - name: "Checkout Git Repository"
+        uses: actions/checkout@v4.1.7
+
+      - name: "Build Docker image"
+        uses: docker/build-push-action@v6.4.1
+        with:
+          context: ./src
+          file: ./src/Dockerfile
+          tags: |
+            mganalistati/conv-temp-sec:v${{ github.run_number }}
+            mganalistati/conv-temp-sec:latest
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'mganalistati/conv-temp-sec:v${{ github.run_number }}'
+          scan-type: image
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'trivy-results.sarif'
+          severity: LOW,MEDIUM,HIGH,CRITICAL
+      
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'

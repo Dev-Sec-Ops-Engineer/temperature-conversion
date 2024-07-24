@@ -5,10 +5,19 @@ on:
     branches: ["develop", "main"]
   workflow_dispatch:
 
+permissions:
+    contents: write
+
 jobs:
   CI:
     name: build
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+      
     steps:
       - name: "Checkout Git Repository"
         uses: actions/checkout@v4.1.7
@@ -37,79 +46,92 @@ jobs:
         with:
           context: ./src
           file: ./src/Dockerfile
-          push: true
+          #push: true
           tags: |
             mganalistati/conv-temp-sec:v${{ github.run_number }}
             mganalistati/conv-temp-sec:latest
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: 'mganalistati/conv-temp-sec:v${{ github.run_number }}'
+          scan-type: image
+          format: 'github'
+          output: 'dependency-results.sbom.json'
+          github-pat: ${{ secrets.GITHUB_TOKEN }}  
+          severity: LOW,MEDIUM,HIGH,CRITICAL
+          scanners: "vuln,secret"
+          ignore-unfixed: true
+          exit-code: 0
   
-  CD-DEVELOP:
-    name: deploy-develop
-    runs-on: ubuntu-latest
-    needs: ["CI"]
-    environment: develop
-    steps:
-      - name: "Checkout Git Repository"
-        uses: actions/checkout@v4.1.7
+  # CD-DEVELOP:
+  #   name: deploy-develop
+  #   runs-on: ubuntu-latest
+  #   needs: ["CI"]
+  #   environment: develop
+  #   steps:
+  #     - name: "Checkout Git Repository"
+  #       uses: actions/checkout@v4.1.7
       
-      - name: "Kubernetes Set Context"
-        uses: Azure/k8s-set-context@v3.0
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+  #     - name: "Kubernetes Set Context"
+  #       uses: Azure/k8s-set-context@v3.0
+  #       with:
+  #         method: kubeconfig
+  #         kubeconfig: ${{ secrets.KUBE_CONFIG }}
       
-      - name: "Deploy to Kubernetes cluster"
-        uses: Azure/k8s-deploy@v5.0.0
-        with:
-          namespace: develop 
-          manifests: | 
-            ./k8s/deployment.yaml
-          images: |
-            mganalistati/conv-temp-sec:v${{ github.run_number }}
+  #     - name: "Deploy to Kubernetes cluster"
+  #       uses: Azure/k8s-deploy@v5.0.0
+  #       with:
+  #         namespace: develop 
+  #         manifests: | 
+  #           ./k8s/deployment.yaml
+  #         images: |
+  #           mganalistati/conv-temp-sec:v${{ github.run_number }}
   
-  CD-HOMOLOGATION:
-    name: deploy-homologation
-    runs-on: ubuntu-latest
-    needs: ["CI"]
-    environment: homologation
-    steps:
-      - name: "Checkout Git Repository"
-        uses: actions/checkout@v4.1.7
+  # CD-HOMOLOGATION:
+  #   name: deploy-homologation
+  #   runs-on: ubuntu-latest
+  #   needs: ["CI"]
+  #   environment: homologation
+  #   steps:
+  #     - name: "Checkout Git Repository"
+  #       uses: actions/checkout@v4.1.7
       
-      - name: "Kubernetes Set Context"
-        uses: Azure/k8s-set-context@v3.0
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+  #     - name: "Kubernetes Set Context"
+  #       uses: Azure/k8s-set-context@v3.0
+  #       with:
+  #         method: kubeconfig
+  #         kubeconfig: ${{ secrets.KUBE_CONFIG }}
       
-      - name: "Deploy to Kubernetes cluster"
-        uses: Azure/k8s-deploy@v5.0.0
-        with:
-          namespace: homologation
-          manifests: | 
-            ./k8s/deployment.yaml
-          images: |
-            mganalistati/conv-temp-sec:v${{ github.run_number }}
+  #     - name: "Deploy to Kubernetes cluster"
+  #       uses: Azure/k8s-deploy@v5.0.0
+  #       with:
+  #         namespace: homologation
+  #         manifests: | 
+  #           ./k8s/deployment.yaml
+  #         images: |
+  #           mganalistati/conv-temp-sec:v${{ github.run_number }}
     
-  CD-PRODUCTION:
-    name: deploy-production
-    runs-on: ubuntu-latest
-    needs: ["CD-HOMOLOGATION"]
-    environment: production
-    steps:
-      - name: "Checkout Git Repository"
-        uses: actions/checkout@v4.1.7
+  # CD-PRODUCTION:
+  #   name: deploy-production
+  #   runs-on: ubuntu-latest
+  #   needs: ["CD-HOMOLOGATION"]
+  #   environment: production
+  #   steps:
+  #     - name: "Checkout Git Repository"
+  #       uses: actions/checkout@v4.1.7
       
-      - name: "Kubernetes Set Context"
-        uses: Azure/k8s-set-context@v3.0
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+  #     - name: "Kubernetes Set Context"
+  #       uses: Azure/k8s-set-context@v3.0
+  #       with:
+  #         method: kubeconfig
+  #         kubeconfig: ${{ secrets.KUBE_CONFIG }}
       
-      - name: "Deploy to Kubernetes cluster"
-        uses: Azure/k8s-deploy@v5.0.0
-        with:
-          namespace: production
-          manifests: | 
-            ./k8s/deployment.yaml
-          images: |
-            mganalistati/conv-temp-sec:v${{ github.run_number }}
+  #     - name: "Deploy to Kubernetes cluster"
+  #       uses: Azure/k8s-deploy@v5.0.0
+  #       with:
+  #         namespace: production
+  #         manifests: | 
+  #           ./k8s/deployment.yaml
+  #         images: |
+  #           mganalistati/conv-temp-sec:v${{ github.run_number }}
