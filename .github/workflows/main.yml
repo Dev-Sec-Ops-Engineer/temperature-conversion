@@ -65,13 +65,13 @@ jobs:
           exit-code: 0
       
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'mganalistati/conv-temp-sec:v${{ github.run_number }}'
           scan-type: image
           format: 'template'
           template: '@/contrib/sarif.tpl'
-          output: 'trivy-results-sarif'
+          output: 'trivy-results.sarif'
           severity: LOW,MEDIUM,HIGH,CRITICAL
       
       - name: Upload Trivy scan results to GitHub Security tab
