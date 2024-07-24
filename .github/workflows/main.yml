@@ -12,6 +12,12 @@ jobs:
   CI:
     name: build
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+      
     steps:
       - name: "Checkout Git Repository"
         uses: actions/checkout@v4.1.7
@@ -58,10 +64,20 @@ jobs:
           ignore-unfixed: true
           exit-code: 0
       
-      # - name: Upload Trivy scan results to GitHub Security tab
-      #   uses: github/codeql-action/upload-sarif@v2
-      #   with:
-      #     sarif_file: 'trivy-results.sarif'
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: 'mganalistati/conv-temp-sec:v${{ github.run_number }}'
+          scan-type: image
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'trivy-results-sarif'
+          severity: LOW,MEDIUM,HIGH,CRITICAL
+      
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
   
   # CD-DEVELOP:
   #   name: deploy-develop
